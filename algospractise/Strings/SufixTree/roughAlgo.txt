@@ -1,0 +1,49 @@
+
+insert(int index){
+		Node needSuffix=null;
+		if(AL<=0)//AP is at node
+		{
+			if(character to be inserted already added to node)
+			{
+				//#obse1
+				set AE;AL=1;AN=AN;reminder++
+				#obse3 
+			}
+			else
+			{
+				reminder--;
+			    Add Edge to AN;#rule2
+			}
+		}
+		else//AP along edge
+		{
+			if(character to be inserted already added to node)
+			{
+				//#obse1
+				AL++;
+				
+				#obse2
+				if(start+AL>end)
+					AN=AE.dest
+					AE=null;
+					AL=0;
+				//#obse3
+				needSuffix.suffix=AN;
+				needSuffix=null;
+			}
+			else
+			{
+			   if(AN==root && AL>0)//AL>0 by code logic
+			   {
+					#rule1
+					
+					#rule2
+					needSuffix.suffix=new node;
+				needSuffix=null;
+			   }
+			   else{
+							#rule3
+			   }
+			}
+		}
+}

@@ -1,0 +1,175 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.TreeMap;
+
+
+public class SuffixTree2 {
+	Node root,activeN,needSuffixLink;
+	int activeEdgeIndex;
+	private int position;
+	private String s;
+	int remainder;
+	private int activeL;
+	public SuffixTree2(String input){
+		s=input;makeTree(s);
+	     root = activeN = new Node(-1, -1);
+	}
+	
+	public static void localMain(String args[]){
+		SuffixTree2 tree= new SuffixTree2("abcabxabcd$");
+		tree.printTree();
+	}
+	public void makeTree(String s){
+		for(int i=0;i<s.length();i++){
+			insert(s.charAt(i));
+		}
+	}
+	public void insert(int position){
+		needSuffixLink=null;
+		remainder++;
+		char c = s.charAt(position);
+		while(remainder>0){
+			if(activeL==0)activeEdgeIndex=position;
+			if(!activeN.contains(getactiveEdgeChar())){
+				Node leaf = new Node(position);
+				activeN.next.put(c,leaf);
+				addSuffixLink(leaf);
+				remainder--;
+			}
+			else{				
+				if(walkDown()){
+					continue;
+				}				
+				if(getActivePointChar()==c){
+					activeL++;
+					addSuffixLink(activeN);
+					return;
+				}
+				////split node.
+				Node next = getNextNodeAfterAp();
+				Node split = new Node(next.start,next.start+activeL);
+			}
+		}
+	}
+	 private void addSuffixLink(Node node) {
+         if (needSuffixLink != null)
+             needSuffixLink.link = node;
+         needSuffixLink = node;
+     }
+	/**
+	 * make sure active point lie on edge from activeN .
+	 * @return
+	 */
+	private boolean walkDown(){		
+		Node next = getNextNodeAfterAp();
+		if(activeL>=next.edgeLength()){
+			activeEdgeIndex+=next.edgeLength();
+			activeL-=next.edgeLength();
+			activeN=next;
+			return true;
+		}
+		return false;
+	}
+	private char getactiveEdgeChar(){
+		return s.charAt(activeEdgeIndex);
+	}
+	//assume no walk down required
+	private char getActivePointChar(){
+		Node next = getNextNodeAfterAp();
+		return s.charAt(next.start+activeL);
+	}
+	private Node getNextNodeAfterAp(){
+		char c = getactiveEdgeChar();
+		Node next = activeN.next.get(c);
+		return next;
+	}
+	static int counter=0;
+	private class Node{		
+		int id;
+		int start,end;//string
+		Node link;//suffix
+		TreeMap<Character,Node> next = new TreeMap<Character,Node>();
+        public Node(int start, int end) {
+            this.start = start;
+            this.end = end;
+            id=counter++;
+        }
+        public Node(int start) {
+            this(start,Integer.MAX_VALUE);
+        }
+        public int edgeLength() {
+            if(end>=s.length()){
+            	return position-start+1;
+            }
+            return end-start+1;
+        }
+        public String edgeString(){
+        	if(end>=s.length()){
+        		return s.substring(start,position+1);
+        	}
+        	return s.substring(start,end+1);        	
+        }
+        public boolean contains(char c){
+        	return next.containsKey(c);
+        }
+	}
+	PrintWriter out=null;
+	 char active_edge() {
+         return s.charAt(activeEdgeIndex);
+     }
+	void printTree() {
+		
+		try {
+			out = new PrintWriter(new FileWriter("st.dot"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        out.println("digraph {");
+        out.println("\trankdir = LR;");
+        out.println("\tedge [arrowsize=0.4,fontsize=10]");
+        out.println("\tnode1 [label=\"\",style=filled,fillcolor=lightgrey,shape=circle,width=.1,height=.1];");
+        out.println("//------leaves------");
+        printLeaves(root);
+        out.println("//------internal nodes------");
+        printInternalNodes(root);
+        out.println("//------edges------");
+        printEdges(root);
+        out.println("//------suffix links------");
+        printSLinks(root);
+        out.println("}");
+    }
+
+    void printLeaves(Node x) {
+        if (x.next.size() == 0)
+            out.println("\tnode"+x.id+" [label=\"\",shape=point]");
+        else {
+            for (Node child : x.next.values())
+                printLeaves(child);
+        }
+    }
+
+    void printInternalNodes(Node x) {
+        if (x != root && x.next.size() > 0)
+            out.println("\tnode"+x.id+" [label=\"\",style=filled,fillcolor=lightgrey,shape=circle,width=.07,height=.07]");
+
+        for (Node child : x.next.values())
+            printInternalNodes(child);
+    }
+
+    void printEdges(Node x) {
+        for (Node child : x.next.values()) {
+            out.println("\tnode"+x.id+" -> node"+child.id+" [label=\""+child.edgeString()+"\",weight=3]");
+            printEdges(child);
+        }
+    }
+
+    void printSLinks(Node x) {
+        if (x.link != null)
+            out.println("\tnode"+x.id+" -> node"+x.link.id+" [label=\"\",weight=1,style=dotted]");
+        for (Node child : x.next.values())
+            printSLinks(child);
+    }
+
+}

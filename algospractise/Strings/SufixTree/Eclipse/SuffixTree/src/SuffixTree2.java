@@ -1,0 +1,223 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.TreeMap;
+/*http://stackoverflow.com/questions/9452701/ukkonens-suffix-tree-algorithm-in-plain-english
+Read first two answers.
+
+# leaves = O(n) [one leaf for each position in the string or for each suffix]
+- Every internal node is at least a binary split.
+- Each edge uses O(1) space.
+ Therefore, # number of internal nodes is about equal 
+to the number of leaves.(for binary tree n-1)
+ And # of edges roughly equal to number of leaves, and space per edge is O(1).
+Hence, linear space
+
+complexity of construction suffix tree = O(n). n is length of plain text.
+complexity of pattern matching = O(m) where m is length of pattern.
+
+from WIKI https://en.wikipedia.org/wiki/Suffix_tree
+PRIMARY APPLICATIONS INCLUDE
+
+    String search, in O(m) complexity, where m is the length of the sub-string (but with initial O(n) time required to 
+    build the suffix tree for the string)
+    Finding the longest repeated substring
+    Finding the longest common substring
+    Finding the longest palindrome in a string
+
+Suffix trees are often used in bioinformatics applications, searching for patterns in DNA or protein sequences 
+(which can be viewed as long strings of characters). The ability to search efficiently with mismatches might be 
+considered their greatest strength. Suffix trees are also used in data compression; they can be used to find 
+repeated data, and can be used for the sorting stage of the Burrows–Wheeler transform. 
+Variants of the LZW compression schemes use suffix trees (LZSS). 
+A suffix tree is also used in suffix tree clustering, a data clustering algorithm used in some search engines.[20]
+*/
+
+public class SuffixTree2 {
+	Node root,activeN,needSuffixLink;
+	int activeEdgeIndex;
+	private int position;
+	private String s;
+	int remainder;
+	private int activeL;
+	public SuffixTree2(String input){
+		root = activeN = new Node(-1, -2);
+		s=input;makeTree(s);
+	     
+	}
+	
+	public static void localMain(String args[]){
+		SuffixTree2 tree= new SuffixTree2("abcabxabc");
+		tree.printTree();
+	}
+	public void makeTree(String s){
+		for(int i=0;i<s.length();i++){
+			position=i;
+			insert();
+		}
+	}
+	public void insert(){
+		needSuffixLink=null;
+		remainder++;
+		char c = s.charAt(position);
+		while(remainder>0){
+			if(activeL<=0) activeEdgeIndex=position;
+			if(!activeN.contains(getactiveEdgeChar())){
+				Node leaf = new Node(position);
+				activeN.next.put(c,leaf);
+				addSuffixLink(activeN);
+				
+			}
+			else{				
+				if(walkDown()){
+					continue;
+				}				
+				if(getActivePointChar()==c){
+					activeL++;
+					addSuffixLink(activeN);
+					break;
+				}
+				////split node.
+				Node next = getNextNodeAfterAp();
+				Node split = new Node(next.start,next.start+activeL-1);
+				activeN.next.put(getactiveEdgeChar(), split);
+				Node leaf = new Node(position);
+				split.next.put(c, leaf);
+				next.start+=activeL;
+				split.next.put(s.charAt(next.start),next);
+				addSuffixLink(split);
+				
+			}
+			remainder--;
+			if(activeN==root && activeL>0){
+				activeL--;
+				activeEdgeIndex=position - remainder + 1;
+			}
+			else
+				activeN=activeN.link==null?root:activeN.link;
+		}
+	}
+	 private void addSuffixLink(Node node) {
+         if (needSuffixLink != null)
+             needSuffixLink.link = node;
+         needSuffixLink = node;
+     }
+	/**
+	 * make sure active point lie on edge from activeN .
+	 * @return
+	 */
+	private boolean walkDown(){		
+		Node next = getNextNodeAfterAp();
+		if(activeL>=next.edgeLength()){
+			activeEdgeIndex+=next.edgeLength();
+			activeL-=next.edgeLength();
+			activeN=next;
+			return true;
+		}
+		return false;
+	}
+	private char getactiveEdgeChar(){
+		return s.charAt(activeEdgeIndex);
+	}
+	//assume no walk down required
+	private char getActivePointChar(){
+		Node next = getNextNodeAfterAp();
+		return s.charAt(next.start+activeL);
+	}
+	private Node getNextNodeAfterAp(){
+		char c = getactiveEdgeChar();
+		Node next = activeN.next.get(c);
+		return next;
+	}
+	static int counter=1;
+	private class Node{		
+		int id;
+		int start,end;//string
+		Node link;//suffix
+		TreeMap<Character,Node> next = new TreeMap<Character,Node>();
+        public Node(int st, int en) {
+            this.start = st;
+            this.end = en;
+            id=counter++;
+        }
+        public Node(int start) {
+            this(start,Integer.MAX_VALUE);
+        }
+        public int edgeLength() {
+            if(end>=s.length()){
+            	return position-start+1;
+            }
+            return end-start+1;
+        }
+        public String edgeString(){
+        	if(end>=s.length()){
+        		return s.substring(start,position+1);
+        	}
+        	return s.substring(start,end+1);        	
+        }
+        public boolean contains(char c){
+        	return next.containsKey(c);
+        }
+	}
+	PrintWriter out=null;
+	         /*
+            printing the Suffix Tree in a format understandable by graphviz. The output is written into
+            st.dot file. In order to see the suffix tree as a PNG image, run the following command:
+            dot -Tpng -O st.dot
+         */
+	void printTree() {
+		
+		try {
+			out = new PrintWriter(new FileWriter("SuffixTree2.dot"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        out.println("digraph {");
+        out.println("\trankdir = LR;");
+        out.println("\tedge [arrowsize=0.4,fontsize=10]");
+        out.println("\tnode1 [label=\"\",style=filled,fillcolor=lightgrey,shape=circle,width=.1,height=.1];");
+        out.println("//------leaves------");
+        printLeaves(root);
+        out.println("//------internal nodes------");
+        printInternalNodes(root);
+        out.println("//------edges------");
+        printEdges(root);
+        out.println("//------suffix links------");
+        printSLinks(root);
+        out.println("}");
+        out.close();
+    }
+
+    void printLeaves(Node x) {
+        if (x.next.size() == 0)
+            out.println("\tnode"+x.id+" [label=\"\",shape=point]");
+        else {
+            for (Node child : x.next.values())
+                printLeaves(child);
+        }
+    }
+
+    void printInternalNodes(Node x) {
+        if (x != root && x.next.size() > 0)
+            out.println("\tnode"+x.id+" [label=\"\",style=filled,fillcolor=lightgrey,shape=circle,width=.07,height=.07]");
+
+        for (Node child : x.next.values())
+            printInternalNodes(child);
+    }
+
+    void printEdges(Node x) {
+        for (Node child : x.next.values()) {
+            out.println("\tnode"+x.id+" -> node"+child.id+" [label=\""+child.edgeString()+"\",weight=3]");
+            printEdges(child);
+        }
+    }
+
+    void printSLinks(Node x) {
+        if (x.link != null)
+            out.println("\tnode"+x.id+" -> node"+x.link.id+" [label=\"\",weight=1,style=dotted]");
+        for (Node child : x.next.values())
+            printSLinks(child);
+    }
+
+}

@@ -1,0 +1,62 @@
+import java.util.TreeMap;
+
+
+public class SuffixTree2 {
+	Node root,activeN;
+	int activeEdgeIndex;
+	private int position;
+	private String s;
+	
+	public static void localMain(String args[]){
+		
+	}
+	public void makeTree(String s){
+		for(int i=0;i<s.length();i++){
+			insert(s.charAt(i));
+		}
+	}
+	public void insert(char c){
+		
+	}
+	/**
+	 * make sure active point lie on edge from activeN .
+	 * @return
+	 */
+	private boolean walkDown(){
+		ch
+		Node next = ac
+		if(activeL>=activeN.edgeLength()){
+			
+		}
+	}
+	private char getactiveEdgeChar(){
+		return s.charAt(activeEdgeIndex);
+	}
+	private Node getNextNodeAfterAp(){
+		char c = activeEdge();
+	}
+	private class Node{
+		int start,end;//string
+		TreeMap<Character,Node> next = new TreeMap<Character,Node>();
+        public Node(int start, int end) {
+            this.start = start;
+            this.end = end;
+        }
+        public Node(int start) {
+            this.start = start;
+            this.end = Integer.MAX_VALUE;
+        }
+        public int edgeLength() {
+            if(end>=s.length()){
+            	return position-start+1;
+            }
+            return end-start+1;
+        }
+        public String edgeString(){
+        	if(end>=s.length()){
+        		return s.substring(start,position+1);
+        	}
+        	return s.substring(start,end+1);        	
+        }
+	}
+}

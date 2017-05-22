@@ -1,0 +1,23 @@
+import java.util.TreeMap;
+
+
+public class SuffixTree2 {
+	Node root,activeN;
+	public static void localMain(String args[]){
+		
+	}
+	public void makeTree(String s){
+		for(int i=0;i<s.length();i++){
+			insert(s.charAt(i));
+		}
+	}
+	public void insert(char c){
+		
+	}
+	private class Node{
+		int start,end;//string
+		TreeMap<Character,Node> next = new TreeMap<Character,Node>();
+		
+		
+	}
+}

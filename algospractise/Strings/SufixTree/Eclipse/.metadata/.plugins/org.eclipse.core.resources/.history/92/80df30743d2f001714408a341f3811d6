@@ -1,0 +1,11 @@
+
+public class SuffixTree2 {
+	public static void localMain(String args[]){
+		
+	}
+	private class Node{
+		int start,end;//string
+		TreeMap<char,Node> next = new TreeMap<char,Node>();
+		
+	}
+}
