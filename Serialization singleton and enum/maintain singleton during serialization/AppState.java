@@ -18,6 +18,10 @@ public class AppState implements Serializable
         return s_instance;
     }
 
+	public static void simulateDestruction(){
+	s_instance=null;
+	}
+	
     private AppState() {
         // initialize
 		System.out.println("constructor called");
@@ -28,20 +32,19 @@ public class AppState implements Serializable
 	*/
     private void readObject(ObjectInputStream ois) throws IOException, ClassNotFoundException {
 	// our "pseudo-constructor"
-	System.out.println(this == s_instance);//however for a shorter period of time, more than one instances are created even in case of singleton.
+	System.out.println("readObject " + (s_instance == this));//however for a shorter period of time, more than one instances are created even in case of singleton.
         ois.defaultReadObject();//Read the non-static and non-transient fields of the current class from this stream. This may only be called from the readObject method of the class being deserialized. It will throw the NotActiveException if it is called otherwise.
-        synchronized (AppState.class) {
-            if (s_instance == null) {//make sure at least one instance is created
-                // re-initialize if needed
-
-                s_instance = this; // only if everything succeeds
-            }
-        }
+        
     }
 
     // this function must not be called other than by the deserialization runtime
-    private Object readResolve() throws ObjectStreamException {//if not override this function, new instance is returned.
-        assert(s_instance != null);
+    private Object readResolve() throws ObjectStreamException {//if not override this function, new instance is returned.	
+        synchronized (AppState.class) {
+            if (s_instance == null) {//make sure at least one instance is created re-initialize if needed.
+                s_instance = this; // only if everything succeeds
+            }
+        }		
+		System.out.println("resolve called");
         return s_instance;
     }
 
@@ -52,7 +55,8 @@ public class AppState implements Serializable
             java.io.ObjectOutputStream oos = new java.io.ObjectOutputStream(baos);
             oos.writeObject(getInstance());
             oos.close();
-
+			
+			simulateDestruction();
             java.io.InputStream is = new java.io.ByteArrayInputStream(baos.toByteArray());
             ObjectInputStream ois = new ObjectInputStream(is);
             AppState s = (AppState)ois.readObject();

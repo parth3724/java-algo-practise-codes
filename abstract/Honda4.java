@@ -1,7 +1,7 @@
 abstract class Bike{  //if a class is declared abstract , it cannot be instantiated. Even if it has no abstract method.
 class local2{static final int b =0;}
 abstract  void run();//if a method is declared abstract , it cannot have body.
-
+private int kkk=9;
 private interface interr{//static by default
 
 	 int ddd=0;
