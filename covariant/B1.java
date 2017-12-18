@@ -17,7 +17,7 @@ void onlyA(){System.out.println("onlyA");}
 A get(){return (A)this;}  
 void message(){System.out.println("welcome to covariant return type B1");}
 void onlyB1(){System.out.println("onlyB1");}
- 
+//comment for learning git. 
   
 public static void main(String args[]){  
 A a = new A();
